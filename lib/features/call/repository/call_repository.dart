@@ -48,8 +48,63 @@ class CallRepository {
       showSnackBBar(context: context, content: e.toString());
     }
   }
+  void makeVoiceCall(
+      Call senderCallData, BuildContext context, Call receiverCallData) async {
+    try {
+      await firestore.collection("call").doc(senderCallData.callerId).set(
+            senderCallData.toMap(),
+          );
+      await firestore.collection("call").doc(senderCallData.receiverId).set(
+            receiverCallData.toMap(),
+          );
+
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CallScreen(
+              channelId: senderCallData.callId,
+              call: senderCallData,
+              isGroupChat: false,
+            ),
+          ));
+    } catch (e) {
+      showSnackBBar(context: context, content: e.toString());
+    }
+  }
 
   void makeGroupCall(
+      Call senderCallData, BuildContext context, Call receiverCallData) async {
+    try {
+      await firestore
+          .collection("call")
+          .doc(senderCallData.callerId)
+          .set(senderCallData.toMap());
+      var groupSnapshot = await firestore
+          .collection("groups")
+          .doc(senderCallData.receiverId)
+          .get();
+      model.Group group = model.Group.fromMap(groupSnapshot.data()!);
+
+      for(var id in group.membersUid) {
+      await firestore.collection("call").doc(id).set(
+            receiverCallData.toMap(),
+          );
+      }
+
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CallScreen(
+              channelId: senderCallData.callId,
+              call: senderCallData,
+              isGroupChat: true,
+            ),
+          ));
+    } catch (e) {
+      showSnackBBar(context: context, content: e.toString());
+    }
+  }
+  void makeGroupVoiceCall(
       Call senderCallData, BuildContext context, Call receiverCallData) async {
     try {
       await firestore

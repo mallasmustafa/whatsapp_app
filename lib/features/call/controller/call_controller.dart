@@ -58,7 +58,37 @@ class CallController {
       }
     });
   }
-
+ void makeVoiceCall(BuildContext context, String receiverName, String receiverUid,
+      String receiverProfilePic, bool isGroupChat) {
+    ref.read(userDataAuthProvider).whenData((value) {
+      String callId = const Uuid().v1();
+      Call senderCallData = Call(
+        callerId: auth.currentUser!.uid,
+        callerName: value!.name,
+        callerPic: value.profilePic,
+        receiverId: receiverUid,
+        receiverName: receiverName,
+        receiverPic: receiverProfilePic,
+        callId: callId,
+        hasDialled: true,
+      );
+      Call recieverCallData = Call(
+        callerId: auth.currentUser!.uid,
+        callerName: value.name,
+        callerPic: value.profilePic,
+        receiverId: receiverUid,
+        receiverName: receiverName,
+        receiverPic: receiverProfilePic,
+        callId: callId,
+        hasDialled: false,
+      );
+      if (isGroupChat) {
+        callRepository.makeGroupVoiceCall(senderCallData, context, recieverCallData);
+      } else{
+      callRepository.makeVoiceCall(senderCallData, context, recieverCallData);
+      }
+    });
+  }
   void endCall(
     String callerId,
     String recieverId,
